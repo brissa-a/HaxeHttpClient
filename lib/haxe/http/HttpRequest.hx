@@ -116,7 +116,6 @@ class HttpRequest
         }
         try {
             sock.connect(new Host(url.host), url.port);
-            trace(b.toString());
             sock.write(b.toString());
             readHttpResponse(response, sock, callbacks, timeout);
             callbacks.onData(toString(response.raw));

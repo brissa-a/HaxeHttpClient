@@ -52,7 +52,7 @@ class HttpRequest
         
     }
 
-    private static function urlEncode(params : List<{name:String, value:String}>) {
+    private static function urlEncode(params : Array<{name:String, value:String}>) {
         var encoded : String = null;
         for( p in params ) {
             if( encoded == null )
@@ -64,7 +64,7 @@ class HttpRequest
         return encoded;
     }
     
-    public static function createGetRequest(url : String, ?params : List<{name:String, value:String}>) {
+    public static function createGetRequest(url : String, ?params : Array<{name:String, value:String}>) {
         var rq = new HttpRequest();
         rq.method = "GET";
         rq.url = new Url(url);
@@ -74,7 +74,7 @@ class HttpRequest
         return rq;
     }
     
-    public static function createPostRequest(url : String, ?params : List<{name:String, value:String}>) {
+    public static function createPostRequest(url : String, ?params : Array<{name:String, value:String}>) {
         var rq = new HttpRequest();
         rq.method = "POST";
         rq.headers.set("Content-Type", "application/x-www-form-urlencoded");
@@ -100,7 +100,7 @@ class HttpRequest
         var b = new StringBuf();
         b.add(method);
         b.add(" ");
-        b.add(url);
+        b.add(url.request);
         b.add(" HTTP/1.1\r\n");
         b.add("Host: " + url.host + "\r\n");
         for( key in headers.keys() ) {
@@ -109,6 +109,11 @@ class HttpRequest
             b.add(headers[key]);
             b.add("\r\n");
         }
+        if (data != null) {
+            b.add("Content-Length: " + data.length + "\r\n");
+            b.add("\r\n");
+            b.add(data);
+        }
         b.add("\r\n");
         var response = {
             raw: new BytesOutput(),
@@ -116,6 +121,7 @@ class HttpRequest
         }
         try {
             sock.connect(new Host(url.host), url.port);
+            Sys.println(b.toString());
             sock.write(b.toString());
             readHttpResponse(response, sock, callbacks, timeout);
             callbacks.onData(toString(response.raw));
@@ -151,7 +157,7 @@ class HttpRequest
         var k = 4;
         var s = haxe.io.Bytes.alloc(4);
         sock.setTimeout(timeout);
-        while( true ) {
+        while ( true ) {
             var p = sock.input.readBytes(s,0,k);
             while( p != k )
                 p += sock.input.readBytes(s,p,k - p);

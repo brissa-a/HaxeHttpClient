@@ -1,4 +1,4 @@
-#HaxeHttpRequest
+#Haxe http client
 
 A simple http client based on standard [haxe.Http](https://github.com/HaxeFoundation/haxe/blob/development/std/haxe/Http.hx)
 to handle Rest call.

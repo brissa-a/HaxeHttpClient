@@ -1,0 +1,11 @@
+{     
+    "name": "http-client",   
+    "url" : "https://github.com/brissa-a/HaxeHttpClient",  
+    "tags": ["http", "client"],
+    "license": "GPL",
+    "releasenote": "Alpha release",
+    "description": "A simple http client based on standard haxe.Http to handle Rest call.",  
+    "version": "0.1.0",       
+    "contributors": ["alexis.brissard"],    
+    "dependencies": {} 
+}

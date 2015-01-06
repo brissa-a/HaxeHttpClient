@@ -52,6 +52,7 @@ class Main
     static function testHttpRequest() {
         var request = new HttpRequest();
         request.method = "GET";
+        request.headers.set("Accept", "text/plain");
         request.url = new Url("http://http.localhost.com/hello.txt");
         trace("request sended !");
         request.send(callbacks);

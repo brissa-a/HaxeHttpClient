@@ -1,17 +1,5 @@
 package haxe.http ;
 
-
-/*
-public static function get(url : String, ?param : Map<String, String>, ?headers : Map<String, String>) {
-    send("GET", url += param, headers, null);
-}
-
-public static function post(param : {url : String, param : Map<String, String>, ?headers : Map<String, String>, ?callback}) {
-    headers.set("Content-Type","application/x-www-form-urlencoded");
-    send("POST", url, headers, param.form-urlencoded);
-}
-*/
-
 import haxe.io.Bytes;
 import haxe.io.BytesOutput;
 import haxe.io.Output;
@@ -97,6 +85,48 @@ class HttpRequest
             sock = new Socket();
         }
 
+        var b = toStringBuf();
+        var response = {
+            raw: new BytesOutput(),
+            headers: new Map<String, String>()
+        }
+        try {
+            sock.connect(new Host(url.host), url.port);
+            sock.write(b.toString());
+            readHttpResponse(response, sock, callbacks, timeout);
+            callbacks.onData(toNekoString(response.raw));
+        } catch( e : Dynamic ) {
+            try sock.close() catch( e : Dynamic ) { };
+            callbacks.onError(Std.string(e), toNekoString(response.raw));
+        }
+    }
+    
+    private static function getSslSocket() {
+        #if php
+        return new php.net.SslSocket();
+        #elseif java
+        return new java.net.SslSocket();
+        #elseif hxssl
+        return new neko.tls.Socket();
+        #else
+        throw "Https is only supported with -lib hxssl";
+        return null;
+        #end
+    }
+
+    private static function toNekoString(o : BytesOutput) {
+        #if neko
+            return neko.Lib.stringReference(o.getBytes());
+        #else
+            return o.getBytes().toString();
+        #end
+    }
+
+    public function toString() {
+        return toStringBuf().toString();
+    }
+
+    public function toStringBuf() {
         var b = new StringBuf();
         b.add(method);
         b.add(" ");
@@ -115,40 +145,7 @@ class HttpRequest
             b.add(data);
         }
         b.add("\r\n");
-        var response = {
-            raw: new BytesOutput(),
-            headers: new Map<String, String>()
-        }
-        try {
-            sock.connect(new Host(url.host), url.port);
-            Sys.println(b.toString());
-            sock.write(b.toString());
-            readHttpResponse(response, sock, callbacks, timeout);
-            callbacks.onData(toString(response.raw));
-        } catch( e : Dynamic ) {
-            try sock.close() catch( e : Dynamic ) { };
-            callbacks.onError(Std.string(e), toString(response.raw));
-        }
-    }
-    
-    private static function getSslSocket() {
-        #if php
-        return new php.net.SslSocket();
-        #elseif java
-        return new java.net.SslSocket();
-        #elseif hxssl
-        return new neko.tls.Socket();
-        #else
-        throw "Https is only supported with -lib hxssl";
-        #end
-    }
-    
-    private static function toString(o : BytesOutput) {
-        #if neko
-            return neko.Lib.stringReference(o.getBytes());
-        #else
-            return o.getBytes().toString();
-        #end
+        return b;
     }
     
     function readHttpResponse( out_reponse : HttpResponse, sock : AbstractSocket, callbacks : HttpRequestCallback, timeout ) {
@@ -320,7 +317,7 @@ class HttpRequest
             }
             // prevent buffer accumulation
             if( len > 10 ) {
-                callbacks.onError("Invalid chunk", toString(api));
+                callbacks.onError("Invalid chunk", toNekoString(api));
                 return false;
             }
             chunk_buf = buf.sub(0,len);

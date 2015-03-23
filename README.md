@@ -5,7 +5,7 @@ to handle Rest call.
 
 Theoretically support all sys target, but was tested only in php.
 
-##Usage Exemple
+##Usage Example
 
 ### Json POST Request
 ```haxe
